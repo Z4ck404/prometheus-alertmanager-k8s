@@ -1,0 +1,35 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: AlertmanagerConfig
+metadata:
+  name: z4ck404-alertmanagerconfig
+spec:
+  route:
+    groupBy: ['alertname', 'job']
+    groupWait: 10s
+    groupInterval: 5m
+    repeatInterval: 12h
+    continue: true
+    matchers:
+      - name: severity
+        matchType: "="
+        value: "warning"
+    receiver: slack
+  receivers:
+    - name: slack
+      slackConfigs:
+        - channel: {{ .Values.Alerting.slack.ofas.channel }}
+          apiURL:
+            key: slack_webhook
+            name: alertmanager-slack-notification
+          sendResolved: true
+          title: >-
+            {{`{{`}} if eq .Status "firing" {{`}}`}}:fire: *FIRING* {{`{{`}} else {{`}}`}}:ok_hand: *RESOLVED* {{`{{`}} end {{`}}`}}
+          text: >-
+            {{`{{`}} range .Alerts {{`}}`}}
+                {{`{{`}} if .Annotations.summary {{`}}`}}*Alert:* {{`{{`}} .Annotations.summary {{`}}`}} - `{{`{{`}} .Labels.severity {{`}}`}}`{{`{{`}} end {{`}}`}}
+                {{`{{`}} if .Annotations.description {{`}}`}}*Description:* {{`{{`}} .Annotations.description {{`}}`}}{{`{{`}} end {{`}}`}}
+                *Details:*
+                {{`{{`}} range .Labels.SortedPairs {{`}}`}} • *{{`{{`}} .Name {{`}}`}}:* `{{`{{`}} .Value {{`}}`}}`
+                {{`{{`}} end {{`}}`}}
+            {{`{{`}} end {{`}}`}}
+          footer: "z4ck404-alertmanager"

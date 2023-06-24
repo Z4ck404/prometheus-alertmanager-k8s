@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: z4ck404-alerts
+  namespace: monitoring
+spec:
+  groups:
+  - name: blackbox.alerts
+    rules:
+    - alert: backbox probe check failed! 
+      expr: |
+        probe_success != 1
+      for: 2m
+      labels:
+        severity: warning
+        namespace: monitoring
+      annotations:
+        summary:  BlackBox prob check failed. Service might be down
+        description: 'Target {{`{{`}} printf "%v" $labels.target {{`}}`}} probe is down.'
